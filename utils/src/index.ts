@@ -11,6 +11,9 @@ export * from './shared.validation';
 export * from './experiment';
 export * from './experiment.validation';
 
+// Experiment data
+export * from './data';
+
 // Cohort
 export * from './cohort';
 export * from './cohort.validation';
