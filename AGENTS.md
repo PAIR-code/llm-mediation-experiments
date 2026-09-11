@@ -195,7 +195,7 @@ and optional helper scripts, examples, and resources.
 | [`eval-pr`](.agents/skills/eval-pr/SKILL.md) | Set up a git worktree to run and evaluate an upstream Pull Request locally |
 | [`gh`](.agents/skills/gh/SKILL.md) | Clean, untruncated GitHub CLI operations and issue/PR inspection |
 
-To inspect GitHub issues and pull requests, use the `gh` skill (`./.agents/skills/gh/scripts/gh-issue-view.sh <number>`) to stream the complete description and comment thread without terminal truncation.
+To inspect GitHub issues and pull requests, use the `gh` skill scripts (`./.agents/skills/gh/scripts/gh-issue-view.sh <number>` for issues or `./.agents/skills/gh/scripts/gh-pr-view.sh <number>` for PRs with CI checks and inline reviews) to stream complete context without terminal truncation.
 
 ## Decisions
 

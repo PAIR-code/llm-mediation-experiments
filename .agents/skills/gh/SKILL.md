@@ -37,9 +37,9 @@ The helper scripts in this skill resolve both issues cleanly.
 
 ## Procedures
 
-### 1. View an Issue or Pull Request (`gh-issue-view.sh`)
+### 1. View an Issue (`gh-issue-view.sh`)
 
-To inspect a GitHub Issue or Pull Request with its complete description and all comments:
+To inspect a GitHub Issue with its complete description and all comments:
 
 ```sh
 ./.agents/skills/gh/scripts/gh-issue-view.sh <number>
@@ -48,13 +48,12 @@ To inspect a GitHub Issue or Pull Request with its complete description and all 
 *(From a sibling worktree directory, call `../.agents/skills/gh/scripts/gh-issue-view.sh <number>` or from repository root).*
 
 **Features**:
-- **Unified for Issues & PRs**: In GitHub CLI, `gh issue view <number>` works interchangeably on both Issues and Pull Requests.
 - **Command Provenance**: Visibly echoes the underlying commands in cyan (`$ gh issue view ... | cat`) before execution.
-- **Complete Context**: Streams the issue/PR description first, followed by the complete comment thread.
+- **Complete Context**: Streams the issue description first, followed by the complete discussion thread.
 - **Compact Payload**: Bypasses Glamour so that even extensive issues fit comfortably in 5–10 KB with zero truncation.
 
 **Optional Flags**:
-- `--no-comments`: Output only the issue/PR header and description.
+- `--no-comments`: Output only the issue header and description.
   ```sh
   ./.agents/skills/gh/scripts/gh-issue-view.sh <number> --no-comments
   ```
@@ -65,7 +64,33 @@ To inspect a GitHub Issue or Pull Request with its complete description and all 
 
 ---
 
-### 2. Run Ad-Hoc GitHub CLI Commands (`gh.sh`)
+### 2. View a Pull Request with CI Checks & Inline Reviews (`gh-pr-view.sh`)
+
+In GitHub CLI, `gh pr view` has a major blind spot: it does **not** display CI check statuses, and even with `--comments`, it completely ignores **inline code review comments** left on changed files.
+
+To inspect a Pull Request with complete metadata, CI checks, PR discussion, and line-level code reviews in a single clean payload:
+
+```sh
+./.agents/skills/gh/scripts/gh-pr-view.sh <number>
+```
+
+**What it orchestrates**:
+1. **Metadata & Description**: `$ gh pr view <id> | cat` (branches, status, additions/deletions, summary).
+2. **CI Status & Checks**: `$ gh pr checks <id> | cat` (lists test runs, format checks, schema validations).
+3. **PR Discussion**: `$ gh pr view <id> --comments | cat` (general conversational thread).
+4. **Inline Code Reviews**: `$ gh api repos/{owner}/{repo}/pulls/<id>/comments` (formats line-level review comments as `[path:line] author: body`).
+
+**Optional Flags**:
+- `--checks-only`: Only display CI check statuses.
+- `--reviews-only`: Only display inline code review comments.
+- `--comments-only`: Only display general discussion comments.
+- `--no-checks`: Skip CI checks.
+- `--no-reviews`: Skip inline code review comments.
+- `--no-comments`: Skip general discussion comments.
+
+---
+
+### 3. Run Ad-Hoc GitHub CLI Commands (`gh.sh`)
 
 For general, ad-hoc `gh` queries (`pr list`, `run view`, `pr checks`), use the generic runner:
 
@@ -82,7 +107,7 @@ For general, ad-hoc `gh` queries (`pr list`, `run view`, `pr checks`), use the g
 
 ---
 
-### 3. Direct GitHub CLI Best Practices (Programmatic Tooling)
+### 4. Direct GitHub CLI Best Practices (Programmatic Tooling)
 
 When writing automated scripts or querying GitHub CLI directly without helper scripts, follow these canons:
 
