@@ -90,22 +90,11 @@ To inspect a Pull Request with complete metadata, CI checks, PR discussion, and 
 
 ---
 
-### 3. Run Ad-Hoc GitHub CLI Commands (`gh.sh`)
+### 3. The Complexity Boundary: When to Script vs. Use Raw `gh`
 
-For general, ad-hoc `gh` queries (`pr list`, `run view`, `pr checks`), use the generic runner:
-
-```sh
-./.agents/skills/gh/scripts/gh.sh pr list --limit 10
-./.agents/skills/gh/scripts/gh.sh run list --limit 5
-```
-
-**What it does**:
-- Visibly echoes the executed command with cyan attribution.
-- Automatically sets `GH_PROMPT_DISABLED=1` so processes never hang indefinitely on interactive prompts.
-- Pipes output through `cat` if running in a TTY to prevent Glamour table/ANSI explosion.
-- Preserves exit codes (`set -eo pipefail`).
-
----
+We draw a deliberate engineering boundary regarding GitHub CLI tooling:
+- **Dedicated Scripts for Complex Synthesis**: When an operation requires synthesizing multiple fragmented endpoints or bypassing severe terminal traps (such as `gh-issue-view.sh` to prevent Glamour truncation and merge comments, or `gh-pr-view.sh` to orchestrate metadata, CI checks, discussion, and inline code reviews), use the dedicated skill scripts.
+- **Raw `gh` for Routine Commands**: For standard, single-step operations (e.g. `gh pr create`, `gh pr edit`, `gh issue comment`), use standard `gh` directly without redundant wrapper layers.
 
 ### 4. Direct GitHub CLI Best Practices (Programmatic Tooling)
 
