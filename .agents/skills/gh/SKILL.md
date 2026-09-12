@@ -116,6 +116,11 @@ When writing automated scripts or querying GitHub CLI directly without helper sc
    gh repo set-default PAIR-code/deliberate-lab
    ```
    *(Bonus: This writes to `.bare/config` and applies globally across all sibling worktrees).*
+4. **Fork Qualification for `gh pr create`**:
+   In a triangle workflow where `gh repo set-default` points to upstream, passing a bare `--head <branch>` fails with a GraphQL error because GitHub looks for `<branch>` on the default upstream repository. Always qualify `--head` with your fork username:
+   ```sh
+   gh pr create --head "$(gh api user -q .login):<branch>" --base main ...
+   ```
 
 ## Safety Rules
 
