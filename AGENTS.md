@@ -24,7 +24,7 @@ This repository follows a **bare Git repository + sibling worktrees** layout wit
 
 ### Committing and pushing in feature worktrees (`<id>-<slug>/`)
 
-- **Staging and committing**: Once an implementation plan is approved and changes are verified, the agent is encouraged to stage and create local commits following Conventional Commits (`feat:`, `fix:`, `chore:`, etc.). Report the commit in the walkthrough.
+- **Staging and committing**: Once an implementation plan is approved and changes are verified, the agent is encouraged to stage and create local commits following Conventional Commits (`feat:`, `fix:`, `chore:`, etc.). Align commit scopes and PR metadata with the 6 repository layers (see [Decision 0004](.agents/decisions/0004-repository-layer-taxonomy.md)). Report the commit in the walkthrough.
 - **Pushing to `origin`**: Pushing feature branches to your personal fork (`origin`) is safe and encouraged—GitHub preserves commit history even across rebase force-pushes (`--force-with-lease`).
 - **Pushing `main`**: Pushing fast-forwarded `main` to `origin/main` to keep your fork in sync with upstream is safe and expected.
 
@@ -202,7 +202,14 @@ To inspect GitHub issues and pull requests, use the `gh` skill scripts (`./.agen
 Architectural, toolchain, and governance precedents are recorded in
 `.agents/decisions/` as lightweight Decision Records with YAML frontmatter
 (see [`0001-record-agent-decisions.md`](.agents/decisions/0001-record-agent-decisions.md)).
-Consult these records just-in-time when resolving architectural or policy ambiguity.
+Consult these records just-in-time when resolving architectural or policy ambiguity:
+
+| Decision | Title | Scope |
+|----------|-------|-------|
+| [`0001`](.agents/decisions/0001-record-agent-decisions.md) | Record Agent Decisions | Triad architecture (`skills/`, `AGENTS.md`, `decisions/`) |
+| [`0002`](.agents/decisions/0002-prefer-self-diagnosing-scripts.md) | Prefer Self-Diagnosing Scripts Over Documentation Bloat | Active detection and remediation over static checklists |
+| [`0003`](.agents/decisions/0003-agent-tooling-output-standards.md) | Agent Tooling Output Standards | Clean stdout, command provenance, 8KB buffer spillover |
+| [`0004`](.agents/decisions/0004-repository-layer-taxonomy.md) | Repository Layer Taxonomy & Labeling | 6 repository layers (`area:*`, `runtime:*`) and toolchain boundaries |
 
 ## Common pitfalls
 
