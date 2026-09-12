@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-# Colors for command provenance echoing
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
-
 usage() {
   echo "Usage: $(basename "$0") <pr-number> [options]"
   echo ""
@@ -94,11 +90,15 @@ fi
 # Disable interactive prompts
 export GH_PROMPT_DISABLED=1
 
+BODY=""
+CHECKS=""
+COMMENTS=""
+REVIEWS=""
+
 # 1. PR Metadata & Description
 if [ "$INCLUDE_BODY" = true ]; then
-  echo -e "${CYAN}$ gh pr view ${TARGET} | cat${NC}"
-  if ! gh pr view "${TARGET}" | cat; then
-    echo "" >&2
+  if ! BODY="$(gh pr view "${TARGET}" 2>&1 | cat)"; then
+    echo "$BODY" >&2
     echo "Tip: If #${TARGET} is an Issue rather than a PR, use gh-issue-view.sh instead." >&2
     exit 1
   fi
@@ -106,33 +106,72 @@ fi
 
 # 2. CI Status & Checks
 if [ "$INCLUDE_CHECKS" = true ]; then
-  # Fetch checks output; gh pr checks may exit 1 if any check failed, so capture output safely
-  CHECKS=$(gh pr checks "${TARGET}" 2>&1 | cat || true)
-  if [[ -n "$CHECKS" && "$CHECKS" != *"no checks reported"* ]]; then
-    if [ "$INCLUDE_BODY" = true ]; then
-      echo ""
-    fi
-    echo -e "${CYAN}$ gh pr checks ${TARGET} | cat${NC}"
-    echo "$CHECKS"
+  C_OUT="$(gh pr checks "${TARGET}" 2>&1 | cat || true)"
+  if [[ -n "$C_OUT" && "$C_OUT" != *"no checks reported"* ]]; then
+    CHECKS="$C_OUT"
   fi
 fi
 
 # 3. PR-Level Discussion Comments
 if [ "$INCLUDE_COMMENTS" = true ]; then
-  COMMENTS=$(gh pr view "${TARGET}" --comments 2>/dev/null | cat || true)
-  if [[ -n "$COMMENTS" ]]; then
-    echo ""
-    echo -e "${CYAN}$ gh pr view ${TARGET} --comments | cat${NC}"
-    echo "$COMMENTS"
-  fi
+  COMMENTS="$(gh pr view "${TARGET}" --comments 2>/dev/null | cat || true)"
 fi
 
 # 4. Inline Code Review Comments
 if [ "$INCLUDE_REVIEWS" = true ]; then
-  REVIEWS=$(gh api repos/{owner}/{repo}/pulls/"${TARGET}"/comments --jq '.[] | "[\(.path):\(.line // "diff")] \(.user.login): \(.body)"' 2>/dev/null || true)
-  if [[ -n "$REVIEWS" ]]; then
-    echo ""
-    echo -e "${CYAN}$ gh api repos/{owner}/{repo}/pulls/${TARGET}/comments (inline code reviews)${NC}"
-    echo "$REVIEWS"
+  REVIEWS="$(gh api repos/{owner}/{repo}/pulls/"${TARGET}"/comments --jq '.[] | "[\(.path):\(.line // "diff")] \(.user.login): \(.body)"' 2>/dev/null || true)"
+fi
+
+# Calculate total payload size
+TOTAL_BYTES=$(( ${#BODY} + ${#CHECKS} + ${#COMMENTS} + ${#REVIEWS} ))
+LIMIT=7000 # Safe ceiling comfortably below 8,192 byte terminal buffer
+
+if [ "$TOTAL_BYTES" -gt "$LIMIT" ]; then
+  OUT_FILE="$(mktemp "${TMPDIR:-/tmp}/gh-pr-${TARGET}-XXXXXX.md")"
+  {
+    if [ -n "$BODY" ]; then
+      printf "%s\n" "$BODY"
+    fi
+    if [ -n "$CHECKS" ]; then
+      printf "\n---\n## CI Checks\n\n%s\n" "$CHECKS"
+    fi
+    if [ -n "$COMMENTS" ]; then
+      printf "\n---\n## Discussion Comments\n\n%s\n" "$COMMENTS"
+    fi
+    if [ -n "$REVIEWS" ]; then
+      printf "\n---\n## Inline Code Reviews\n\n%s\n" "$REVIEWS"
+    fi
+  } > "$OUT_FILE"
+
+  echo "$ gh pr view ${TARGET}"
+  echo "Output (${TOTAL_BYTES} bytes) exceeds 8KB terminal limit; saved to: ${OUT_FILE} (view with view_file)"
+else
+  if [ -n "$BODY" ]; then
+    echo "$ gh pr view ${TARGET} | cat"
+    printf "%s\n" "$BODY"
+  fi
+
+  if [ -n "$CHECKS" ]; then
+    if [ -n "$BODY" ]; then
+      echo ""
+    fi
+    echo "$ gh pr checks ${TARGET} | cat"
+    printf "%s\n" "$CHECKS"
+  fi
+
+  if [ -n "$COMMENTS" ]; then
+    if [ -n "$BODY" ] || [ -n "$CHECKS" ]; then
+      echo ""
+    fi
+    echo "$ gh pr view ${TARGET} --comments | cat"
+    printf "%s\n" "$COMMENTS"
+  fi
+
+  if [ -n "$REVIEWS" ]; then
+    if [ -n "$BODY" ] || [ -n "$CHECKS" ] || [ -n "$COMMENTS" ]; then
+      echo ""
+    fi
+    echo "$ gh api repos/{owner}/{repo}/pulls/${TARGET}/comments (inline code reviews)"
+    printf "%s\n" "$REVIEWS"
   fi
 fi

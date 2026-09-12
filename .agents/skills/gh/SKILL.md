@@ -26,14 +26,16 @@ Invoke this skill when asked to:
 When running `gh` inside persistent agent terminal sessions, two subtle traps routinely corrupt output:
 
 1. **PTY / Glamour Byte Inflation**:
-   When `gh` outputs to a pseudo-terminal (PTY), it invokes **Glamour** (a terminal markdown renderer) to format headings, borders, and ANSI colors. This inflates the byte size by **12× to 16×** (e.g. 6 KB of raw markdown expands to 70–100+ KB). When output exceeds the agent harness buffer ceiling (~45 KB), the harness truncates lines from the top (`<truncated N lines>`), silently discarding the issue title, problem statement, and earliest comments.
-2. **The Non-TTY Mutual-Exclusion Trap**:
+   When `gh` outputs to a pseudo-terminal (PTY), it invokes **Glamour** (a terminal markdown renderer) to format headings, borders, and ANSI colors. This inflates the byte size by **12× to 16×** (e.g. 6 KB of raw markdown expands to 70–100+ KB).
+2. **Terminal stdout 8 KB Buffer Ceiling**:
+   While `view_file` can read up to 45 KiB (46,080 bytes) intact, the agent harness terminal stdout (`run_command`) truncates from the top once output exceeds **8,192 bytes (8 KB)** (`<truncated N lines>`), silently discarding the issue title, problem statement, and earliest comments.
+3. **The Non-TTY Mutual-Exclusion Trap**:
    When piping to `cat` to bypass Glamour (`gh issue view <id> | cat`), `gh` treats `view` and `view --comments` as **mutually exclusive**:
    - `gh issue view <id> | cat` prints *only* the issue header and body.
    - `gh issue view <id> --comments | cat` prints *only* the comments (omitting the body).
    Neither command alone gives an agent complete context in a single call.
 
-The helper scripts in this skill resolve both issues cleanly.
+The helper scripts in this skill resolve all three issues cleanly: they bypass Glamour, combine threads, and automatically spill payloads exceeding 7 KB to a temporary file via `mktemp` with a one-liner directing the agent to inspect it intact via `view_file`.
 
 ## Procedures
 
@@ -48,9 +50,9 @@ To inspect a GitHub Issue with its complete description and all comments:
 *(From a sibling worktree directory, call `../.agents/skills/gh/scripts/gh-issue-view.sh <number>` or from repository root).*
 
 **Features**:
-- **Command Provenance**: Visibly echoes the underlying commands in cyan (`$ gh issue view ... | cat`) before execution.
+- **Command Provenance**: Visibly echoes the underlying commands (`$ gh issue view ... | cat`) in clean plain text matching [ADR 0003](../../decisions/0003-agent-tooling-output-standards.md) before execution.
 - **Complete Context**: Streams the issue description first, followed by the complete discussion thread.
-- **Compact Payload**: Bypasses Glamour so that even extensive issues fit comfortably in 5–10 KB with zero truncation.
+- **Compact Payload & Automatic Overflow**: Emits directly to stdout if under 7 KB; if larger, saves directly to a temporary markdown file via `mktemp` and provides the exact path for lossless inspection via `view_file`.
 
 **Optional Flags**:
 - `--no-comments`: Output only the issue header and description.

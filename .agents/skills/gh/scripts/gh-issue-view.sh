@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-# Colors for command provenance echoing
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
-
 usage() {
   echo "Usage: $(basename "$0") <issue-or-pr-number> [--no-comments | --comments-only]"
   echo ""
@@ -62,20 +58,50 @@ fi
 # Disable interactive prompts
 export GH_PROMPT_DISABLED=1
 
-# Stream body if requested
+BODY=""
+COMMENTS=""
+
+# Fetch body if requested
 if [ "$INCLUDE_BODY" = true ]; then
-  echo -e "${CYAN}$ gh issue view ${TARGET} | cat${NC}"
-  gh issue view "${TARGET}" | cat
+  BODY="$(gh issue view "${TARGET}" | cat)"
 fi
 
-# Stream comments if requested
+# Fetch comments if requested
 if [ "$INCLUDE_COMMENTS" = true ]; then
-  COMMENTS=$(gh issue view "${TARGET}" --comments | cat)
+  COMMENTS="$(gh issue view "${TARGET}" --comments 2>/dev/null | cat || true)"
+fi
+
+# Calculate total payload size
+TOTAL_BYTES=$(( ${#BODY} + ${#COMMENTS} ))
+LIMIT=7000 # Safe ceiling comfortably below 8,192 byte terminal buffer
+
+if [ "$TOTAL_BYTES" -gt "$LIMIT" ]; then
+  OUT_FILE="$(mktemp "${TMPDIR:-/tmp}/gh-issue-${TARGET}-XXXXXX.md")"
+  {
+    if [ -n "$BODY" ]; then
+      printf "%s\n" "$BODY"
+    fi
+    if [ -n "$COMMENTS" ]; then
+      if [ -n "$BODY" ]; then
+        printf "\n"
+      fi
+      printf "%s\n" "$COMMENTS"
+    fi
+  } > "$OUT_FILE"
+
+  echo "$ gh issue view ${TARGET}"
+  echo "Output (${TOTAL_BYTES} bytes) exceeds 8KB terminal limit; saved to: ${OUT_FILE} (view with view_file)"
+else
+  if [ "$INCLUDE_BODY" = true ]; then
+    echo "$ gh issue view ${TARGET} | cat"
+    printf "%s\n" "$BODY"
+  fi
+
   if [[ -n "$COMMENTS" ]]; then
     if [ "$INCLUDE_BODY" = true ]; then
       echo ""
     fi
-    echo -e "${CYAN}$ gh issue view ${TARGET} --comments | cat${NC}"
-    echo "$COMMENTS"
+    echo "$ gh issue view ${TARGET} --comments | cat"
+    printf "%s\n" "$COMMENTS"
   fi
 fi
