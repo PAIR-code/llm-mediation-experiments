@@ -24,9 +24,10 @@ This repository follows a **bare Git repository + sibling worktrees** layout wit
 
 ### Committing and pushing in feature worktrees (`<id>-<slug>/`)
 
-- **Staging and committing**: Once an implementation plan is approved and changes are verified, the agent is encouraged to stage and create local commits following Conventional Commits (`feat:`, `fix:`, `chore:`, etc.). Report the commit in the walkthrough.
+- **Staging and committing**: Once an implementation plan is approved and changes are verified, the agent is encouraged to stage and create local commits following Conventional Commits (`feat:`, `fix:`, `chore:`, etc.). Align commit scopes and PR metadata with the 6 repository layers (see [Decision 0004](.agents/decisions/0004-repository-layer-taxonomy.md)). Report the commit in the walkthrough.
 - **Pushing to `origin`**: Pushing feature branches to your personal fork (`origin`) is safe and encouraged—GitHub preserves commit history even across rebase force-pushes (`--force-with-lease`).
 - **Pushing `main`**: Pushing fast-forwarded `main` to `origin/main` to keep your fork in sync with upstream is safe and expected.
+- **Post-Action Reviews**: Upon completing a PR, major feature milestone, or pairing session, consider running a retrospective using the `retrospective` skill to reflect on friction, capture overturned proposals, and anchor fast-follow items without in-flight scope creep.
 
 > [!CAUTION]
 > **Never run destructive or hard-to-reverse git commands without confirmation**:
@@ -191,17 +192,26 @@ and optional helper scripts, examples, and resources.
 | Skill | Purpose |
 |-------|---------|
 | [`workspace-overview`](.agents/skills/workspace-overview/SKILL.md) | Inspect environment, Node.js version, worktree topology, and toolchain readiness |
-| [`sync-fork`](.agents/skills/sync-fork/SKILL.md) | Sync fork's `main` with upstream and rebase feature branches |
+| [`workspace-sync`](.agents/skills/workspace-sync/SKILL.md) | Synchronize trunk, mirror PR worktrees, and inspect feature branch drift |
 | [`eval-pr`](.agents/skills/eval-pr/SKILL.md) | Set up a git worktree to run and evaluate an upstream Pull Request locally |
+| [`gh`](.agents/skills/gh/SKILL.md) | Clean, untruncated GitHub CLI operations and issue/PR inspection |
+| [`retrospective`](.agents/skills/retrospective/SKILL.md) | AI-native Post-Action Reviews using FAR rubric, telemetry mining, and zero-in-flight fixes |
 
-To inspect GitHub issues and pull requests, use the GitHub CLI (`gh issue view <number> --comments` or `gh pr view <number> --comments`) rather than fetching raw HTML or making unauthenticated REST calls.
+To inspect GitHub issues and pull requests, use the `gh` skill scripts (`./.agents/skills/gh/scripts/gh-issue-view.sh <number>` for issues or `./.agents/skills/gh/scripts/gh-pr-view.sh <number>` for PRs with CI checks and inline reviews) to stream complete context without terminal truncation.
 
 ## Decisions
 
 Architectural, toolchain, and governance precedents are recorded in
 `.agents/decisions/` as lightweight Decision Records with YAML frontmatter
 (see [`0001-record-agent-decisions.md`](.agents/decisions/0001-record-agent-decisions.md)).
-Consult these records just-in-time when resolving architectural or policy ambiguity.
+Consult these records just-in-time when resolving architectural or policy ambiguity:
+
+| Decision | Title | Scope |
+|----------|-------|-------|
+| [`0001`](.agents/decisions/0001-record-agent-decisions.md) | Record Agent Decisions | Triad architecture (`skills/`, `AGENTS.md`, `decisions/`) |
+| [`0002`](.agents/decisions/0002-prefer-self-diagnosing-scripts.md) | Prefer Self-Diagnosing Scripts Over Documentation Bloat | Active detection and remediation over static checklists |
+| [`0003`](.agents/decisions/0003-agent-tooling-output-standards.md) | Agent Tooling Output Standards | Clean stdout, command provenance, 8KB buffer spillover |
+| [`0004`](.agents/decisions/0004-repository-layer-taxonomy.md) | Repository Layer Taxonomy & Labeling | 6 repository layers (`area:*`, `runtime:*`) and toolchain boundaries |
 
 ## Common pitfalls
 
