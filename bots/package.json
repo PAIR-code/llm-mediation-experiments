@@ -1,0 +1,23 @@
+{
+  "name": "@deliberation-lab/bots",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "review:test-plan": "tsx src/bots/experiment-test-plan/cli.ts",
+    "review:hello-world": "tsx src/bots/hello-world/cli.ts"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "@google/genai": "^2.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

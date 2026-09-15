@@ -1,0 +1,51 @@
+name: PR Review Bots
+
+# zizmor: ignore[dangerous-triggers] - Runs trusted base scripts; inspects PR diffs strictly as inert text via Octokit
+on:
+  # zizmor: ignore[dangerous-triggers]
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to evaluate (optional when triggered from PR)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  experiment-test-plan:
+    name: Experiment Test Plan Assistant
+    runs-on: ubuntu-latest
+    # Skip draft PRs automatically
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (!github.event.pull_request.draft)
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: 22.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Experiment Test Plan Assistant
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PR_NUMBER_INPUT: ${{ inputs.pr_number }}
+        run: |
+          ARGS=""
+          if [ -n "$PR_NUMBER_INPUT" ]; then
+            ARGS="--pr $PR_NUMBER_INPUT"
+          fi
+          npx tsx bots/src/bots/experiment-test-plan/cli.ts $ARGS

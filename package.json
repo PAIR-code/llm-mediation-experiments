@@ -34,9 +34,10 @@
     "build:utils": "npm run build -w utils",
     "build:functions": "npm run build -w functions",
     "build:frontend": "node scripts/ensure-frontend-dev-config.js && npm run build -w frontend",
-    "build": "npm run build:utils && npm run build:functions && npm run build:frontend",
-    "lint": "prettier --check \"utils/**/*.ts\" \"functions/**/*.ts\" \"frontend/**/*.ts\" && eslint --quiet \"utils/**/*.ts\" \"functions/**/*.ts\" \"frontend/**/*.ts\"",
-    "test": "npm test -w utils && npm test -w functions && npm test -w frontend",
+    "build:bots": "npm run build -w bots",
+    "build": "npm run build:utils && npm run build:functions && npm run build:frontend && npm run build:bots",
+    "lint": "prettier --check \"utils/**/*.ts\" \"functions/**/*.ts\" \"frontend/**/*.ts\" \"bots/**/*.ts\" && eslint --quiet \"utils/**/*.ts\" \"functions/**/*.ts\" \"frontend/**/*.ts\" \"bots/**/*.ts\"",
+    "test": "npm test -w utils && npm test -w functions && npm test -w frontend && npm test -w bots",
     "deploy:rules:firestore": "node scripts/deploy-firestore-rules.js",
     "deploy:rules:storage": "node scripts/deploy-storage-rules.js",
     "deploy:rules:database": "node scripts/deploy-database-rules.js",
@@ -49,7 +50,8 @@
   "workspaces": [
     "frontend",
     "utils",
-    "functions"
+    "functions",
+    "bots"
   ],
   "dependencies": {
     "crypto-browserify": "^3.12.1"
