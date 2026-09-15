@@ -13,7 +13,10 @@ import {ChipStageConfigData} from './chip_stage.validation';
 import {ComprehensionStageConfigData} from './comprehension_stage.validation';
 import {FlipCardStageConfigData} from './flipcard_stage.validation';
 import {RankingStageConfigData} from './ranking_stage.validation';
-import {InfoStageConfigData} from './info_stage.validation';
+import {
+  InfoStageConfigData,
+  validateInfoStageConfig,
+} from './info_stage.validation';
 import {PayoutStageConfigData} from './payout_stage.validation';
 import {
   PrivateChatStageConfigData,
@@ -60,7 +63,7 @@ export const CONFIG_DATA: Record<string, StageConfigEntry> = {
   chip: {schema: ChipStageConfigData},
   comprehension: {schema: ComprehensionStageConfigData},
   flipcard: {schema: FlipCardStageConfigData},
-  info: {schema: InfoStageConfigData},
+  info: {schema: InfoStageConfigData, validate: validateInfoStageConfig},
   payout: {schema: PayoutStageConfigData},
   privateChat: {
     schema: PrivateChatStageConfigData,

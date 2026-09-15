@@ -290,6 +290,8 @@ class InfoStageConfig(BaseModel):
     anonymousProfileSetId: str | None = None
     infoLines: list[str]
     youtubeVideoId: str | None = None
+    timeLimitInMinutes: Annotated[int | None, Field(ge=1)] = None
+    timeMinimumInMinutes: Annotated[int | None, Field(ge=1)] = None
 
 
 class Currency(StrEnum):

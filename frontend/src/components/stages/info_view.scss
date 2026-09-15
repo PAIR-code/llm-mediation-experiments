@@ -1,5 +1,5 @@
-@use "../../sass/common";
-@use "../../sass/typescale";
+@use '../../sass/common';
+@use '../../sass/typescale';
 
 :host {
   @include common.flex-column;
@@ -30,4 +30,9 @@
   max-width: 100%;
   display: block;
   margin: auto;
+}
+
+.description {
+  @include typescale.body-medium;
+  color: var(--md-sys-color-on-surface-variant);
 }

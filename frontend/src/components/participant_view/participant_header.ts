@@ -53,11 +53,12 @@ export class Header extends MobxLitElement {
   private updateTimer() {
     if (!this.stage) return;
 
-    // Check if stage is chat or survey (or other stage with time limit)
+    // Check if stage is chat, survey, or info (or other stage with time limit)
     if (
       this.stage.kind === StageKind.CHAT ||
       this.stage.kind === StageKind.PRIVATE_CHAT ||
-      this.stage.kind === StageKind.SURVEY
+      this.stage.kind === StageKind.SURVEY ||
+      this.stage.kind === StageKind.INFO
     ) {
       if (this.stage.timeLimitInMinutes) {
         const publicStageData = this.cohortService.stagePublicDataMap[

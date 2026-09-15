@@ -15,3 +15,23 @@ pr-textarea-template {
 md-outlined-text-field {
   width: 100%;
 }
+
+.checkbox-wrapper {
+  @include common.flex-row-align-center;
+  gap: common.$spacing-small;
+  overflow-wrap: break-word;
+
+  md-checkbox {
+    flex-shrink: 0;
+  }
+}
+
+.number-input {
+  @include common.number-input;
+  width: max-content;
+}
+
+.tab {
+  margin-top: 0px;
+  margin-left: calc(48px + common.$spacing-medium);
+}

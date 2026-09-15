@@ -7,7 +7,9 @@ import {MobxLitElement} from '@adobe/lit-mobx';
 import {CSSResultGroup, html, nothing} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-import {InfoStageConfig} from '@deliberation-lab/utils';
+import {InfoStageConfig, getTimeElapsed} from '@deliberation-lab/utils';
+import {core} from '../../core/core';
+import {ParticipantService} from '../../services/participant.service';
 
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import {convertMarkdownToHTML} from '../../shared/utils';
@@ -18,12 +20,46 @@ import {styles} from './info_view.scss';
 export class InfoView extends MobxLitElement {
   static override styles: CSSResultGroup = [styles];
 
+  private readonly participantService = core.getService(ParticipantService);
+
   @property() stage: InfoStageConfig | null = null;
+
+  private timerInterval: number | undefined;
+
+  override connectedCallback() {
+    super.connectedCallback();
+    this.timerInterval = window.setInterval(() => {
+      if (this.stage?.timeMinimumInMinutes || this.stage?.timeLimitInMinutes) {
+        this.requestUpdate();
+      }
+    }, 1000);
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    window.clearInterval(this.timerInterval);
+  }
 
   override render() {
     if (!this.stage) {
       return nothing;
     }
+
+    const startTimestamp =
+      this.participantService.profile?.timestamps.readyStages[this.stage.id];
+    const elapsedMinutes = startTimestamp
+      ? getTimeElapsed(startTimestamp, 'm')
+      : 0;
+
+    // Timing check:
+    // - timeMinimumInMinutes strictly gates the "Next stage" button until met.
+    // - timeLimitInMinutes drives the visual countdown timer in participant-header;
+    //   participants can still view info after the max time is reached (no hard cutoff).
+    const minTimeMet =
+      this.stage.timeMinimumInMinutes == null ||
+      this.stage.timeMinimumInMinutes <= 0 ||
+      (startTimestamp != null &&
+        elapsedMinutes >= this.stage.timeMinimumInMinutes);
 
     const infoLinesJoined = this.stage?.infoLines.join('\n\n');
     return html`
@@ -48,11 +84,24 @@ export class InfoView extends MobxLitElement {
             `
           : nothing}
       </div>
-      <stage-footer>
+      <stage-footer .disabled=${!minTimeMet}>
         ${this.stage.progress.showParticipantProgress
           ? html`<progress-stage-completed></progress-stage-completed>`
           : nothing}
+        ${!minTimeMet ? this.renderMinTimeMessage(elapsedMinutes) : nothing}
       </stage-footer>
+    `;
+  }
+
+  private renderMinTimeMessage(elapsedMinutes: number) {
+    const remaining = Math.ceil(
+      (this.stage?.timeMinimumInMinutes ?? 0) - elapsedMinutes,
+    );
+    return html`
+      <div class="description">
+        You must stay on this page for at least ${remaining} more
+        minute${remaining !== 1 ? 's' : ''}.
+      </div>
     `;
   }
 }

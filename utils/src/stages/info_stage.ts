@@ -16,6 +16,8 @@ export interface InfoStageConfig extends BaseStageConfig {
   kind: StageKind.INFO;
   infoLines: string[];
   youtubeVideoId?: string;
+  timeLimitInMinutes: number | null; // Maximum duration in minutes (integer), or null if no limit.
+  timeMinimumInMinutes: number | null; // Minimum time participants must stay in minutes (integer), or null if no minimum.
 }
 
 // ************************************************************************* //
@@ -48,6 +50,8 @@ export function createInfoStage(
     progress: config.progress ?? createStageProgressConfig(),
     infoLines: config.infoLines ?? [],
     youtubeVideoId: config.youtubeVideoId,
+    timeLimitInMinutes: config.timeLimitInMinutes ?? null,
+    timeMinimumInMinutes: config.timeMinimumInMinutes ?? null,
   };
 }
 
@@ -63,5 +67,7 @@ export function createTutorialInfoStage(
     progress: config.progress ?? createStageProgressConfig(),
     infoLines: config.infoLines ?? TUTORIAL_INFO_LINES,
     youtubeVideoId: config.youtubeVideoId,
+    timeLimitInMinutes: config.timeLimitInMinutes ?? null,
+    timeMinimumInMinutes: config.timeMinimumInMinutes ?? null,
   };
 }

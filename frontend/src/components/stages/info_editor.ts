@@ -1,11 +1,13 @@
 import {MobxLitElement} from '@adobe/lit-mobx';
 import {CSSResultGroup, html, nothing} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import '@material/web/checkbox/checkbox.js';
 import '@material/web/textfield/outlined-text-field.js';
 import '../../pair-components/textarea_template';
 
 import {core} from '../../core/core';
 import {ExperimentEditor} from '../../services/experiment.editor';
+import {renderTimeLimit} from '../../shared/stage.utils';
 
 import {InfoStageConfig} from '@deliberation-lab/utils';
 
@@ -25,7 +27,18 @@ export class InfoEditorComponent extends MobxLitElement {
       return nothing;
     }
 
-    return html` ${this.renderInfoLines()} ${this.renderYouTubeInput()} `;
+    return html`
+      ${renderTimeLimit({
+        stage: this.stage,
+        canEdit: this.experimentEditor.canEditStages,
+        onStageChange: (stage) => this.experimentEditor.updateStage(stage),
+        checkboxTitle: 'Set time limit for info stage',
+        maxTimeLabel:
+          'Maximum time in minutes (starting when participant enters stage).',
+        minTimeLabel: 'Minimum time participants must stay (in minutes).',
+      })}
+      ${this.renderInfoLines()} ${this.renderYouTubeInput()}
+    `;
   }
 
   private renderYouTubeInput() {
